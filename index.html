@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spot the Fake - real or machine?</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>Spot the Fake</h1>
+  <p class="tag">Two pictures of the same thing. One was photographed, one was drawn by a machine. Pick the fake before the clock runs out.</p>
+</header>
+<main>
+  <section class="controls">
+    <button id="start">Deal a round</button>
+    <button id="signin" class="ghost">Sign in with Pollinations</button>
+    <span id="status" class="status"></span>
+  </section>
+  <section class="hud">
+    <span>Score <b id="score">0</b></span>
+    <span>Streak <b id="streak">0</b></span>
+    <span>Round <b id="round">0</b></span>
+  </section>
+
+  <div id="timerwrap" class="timerwrap" hidden><div id="timerbar" class="timerbar"></div></div>
+
+  <section id="board" class="board" hidden>
+    <button class="card" id="cardA"><img id="imgA" alt="first picture"><span class="pick">This one is fake</span></button>
+    <button class="card" id="cardB"><img id="imgB" alt="second picture"><span class="pick">This one is fake</span></button>
+  </section>
+
+  <section id="verdict" class="panel" hidden>
+    <h2 id="vhead"></h2>
+    <p id="vtell"></p>
+    <p id="vsrc" class="dim"></p>
+    <button id="next" class="ghost">Next round</button>
+  </section>
+
+  <section class="panel">
+    <h2>What the pictures come from</h2>
+    <ul class="facts">
+      <li>The real picture is a public domain photograph, pulled live from Wikimedia Commons for the subject of the round.</li>
+      <li>The fake is made on the spot by a Pollinations image model from a one line prompt of the same subject, so it is always fresh.
+      <li>Twelve seconds a round. The timer bar is the pressure, the tell after the reveal is the lesson.</li>
+      <li>Signing in is a plain OAuth + PKCE loop in your browser, and your own Pollen pays for the generated picture. Nothing is proxied.</li>
+    </ul>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
