@@ -108,6 +108,14 @@ async function fakePhoto(prompt) {
   return URL.createObjectURL(await r.blob());
 }
 
+
+/* ---------- demo rounds: bundled so anybody can play without signing in ---------- */
+const DEMO = [
+  { real: "assets/demo-1-real.jpg", fake: "assets/demo-1-fake.jpg", title: "Callie the golden retriever puppy.jpg", tell: "look at the paws: the machine drawing usually adds a sixth toe." },
+  { real: "assets/demo-2-real.jpg", fake: "assets/demo-2-fake.jpg", title: "Assorted Sushi Platter from Nobu.jpg", tell: "follow the chopsticks, the machine version fuses them into one." },
+  { real: "assets/demo-3-real.jpg", fake: "assets/demo-3-fake.jpg", title: "2006 Ojiya balloon festival 011.jpg", tell: "count the ropes: on the machine version they fray into the balloon fabric." }
+];
+
 /* ---------- round state ---------- */
 const state = { score: 0, streak: 0, round: 0, fakeIsA: true, topic: null, busy: false, timer: null, deadline: 0 };
 
@@ -126,37 +134,46 @@ function loaded(img) {
 }
 
 async function deal() {
-  if (!token) { signIn(); return; }
   if (state.busy) return;
   state.busy = true;
   $("verdict").hidden = true;
   $("board").hidden = true;
   $("timerwrap").hidden = true;
   $("start").disabled = true;
-  $("status").textContent = "Finding a photograph, then drawing a fake of the same thing...";
-  const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-  try {
-    const both = await Promise.all([realPhoto(topic.q), fakePhoto(topic.p)]);
-    const real = both[0], fake = both[1];
-    state.topic = topic;
-    state.fakeIsA = Math.random() < 0.5;
-    $("imgA").src = state.fakeIsA ? fake : real.url;
-    $("imgB").src = state.fakeIsA ? real.url : fake;
-    $("vsrc").textContent = "The real photograph: " + real.title.replace("File:", "") + " (Wikimedia Commons, public domain).";
-    await Promise.all([loaded($("imgA")), loaded($("imgB"))]);
-  } catch (e) {
-    $("status").textContent = "Round failed (" + e.message + "). Deal again.";
-    state.busy = false;
-    $("start").disabled = false;
-    return;
+  let real = null, fake = null;
+  if (!token) {
+    const d = DEMO[Math.floor(Math.random() * DEMO.length)];
+    real = { url: d.real, title: d.title };
+    fake = d.fake;
+    state.topic = { t: d.tell };
+    $("status").textContent = "Demo round, no sign in needed.";
+  } else {
+    $("status").textContent = "Finding a photograph, then drawing a fake of the same thing...";
+    const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+    try {
+      const both = await Promise.all([realPhoto(topic.q), fakePhoto(topic.p)]);
+      real = both[0];
+      fake = both[1];
+      state.topic = topic;
+    } catch (e) {
+      $("status").textContent = "Round failed (" + e.message + "). Deal again.";
+      state.busy = false;
+      $("start").disabled = false;
+      return;
+    }
   }
+  state.fakeIsA = Math.random() < 0.5;
+  $("imgA").src = state.fakeIsA ? fake : real.url;
+  $("imgB").src = state.fakeIsA ? real.url : fake;
+  $("vsrc").textContent = "The real photograph: " + real.title.replace("File:", "") + " (Wikimedia Commons, public domain).";
+  await Promise.all([loaded($("imgA")), loaded($("imgB"))]);
   state.round += 1;
   $("round").textContent = state.round;
   $("board").hidden = false;
   $("timerwrap").hidden = false;
   $("cardA").classList.remove("fake");
   $("cardB").classList.remove("fake");
-  $("status").textContent = "Which one is the fake? " + (ROUND_MS / 1000) + " seconds.";
+  $("status").textContent = (token ? "Which one is the fake? " : "Demo round. Which one is the fake? ") + (ROUND_MS / 1000) + " seconds.";
   state.deadline = Date.now() + ROUND_MS;
   state.timer = setInterval(tick, 80);
 }
